@@ -1,1 +1,0 @@
-# Redzen Blazor Vsix Template
