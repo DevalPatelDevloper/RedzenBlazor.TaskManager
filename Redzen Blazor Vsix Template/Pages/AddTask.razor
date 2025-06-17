@@ -1,0 +1,27 @@
+﻿@page "/add-task"
+@using Redzen_Blazor_Vsix_Template.Models
+@using Redzen_Blazor_Vsix_Template.Services
+@inject TaskService TaskService
+@inject NavigationManager Nav
+
+<h3>Add Task</h3>
+
+<div class="form-group">
+    <label>Title:</label>
+    <input class="form-control" @bind="task.Title" />
+</div>
+<div class="form-group">
+    <label>Assign To:</label>
+    <input class="form-control" @bind="task.AssignedTo" />
+</div>
+<button class="btn btn-primary" @onclick="Add">Add Task</button>
+
+@code {
+    private TaskItem task = new();
+
+    private void Add()
+    {
+        TaskService.AddTask(task);
+        Nav.NavigateTo("/");
+    }
+}

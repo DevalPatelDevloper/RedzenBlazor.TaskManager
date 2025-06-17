@@ -1,0 +1,113 @@
+﻿@page "/tasks"
+@using Redzen_Blazor_Vsix_Template.Models
+@using Redzen_Blazor_Vsix_Template.Services
+@inject TaskService TaskService
+
+<h3>Task Dashboard</h3>
+
+<!-- Status Summary Boxes -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">✅ Completed</h5>
+                <p class="card-text fs-4">@CompletedCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">🕗 In Progress</h5>
+                <p class="card-text fs-4">@InProgressCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-secondary">
+            <div class="card-body">
+                <h5 class="card-title">📝 Pending</h5>
+                <p class="card-text fs-4">@PendingCount</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (completedTasks != null && completedTasks.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Assigned To</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var task in completedTasks)
+            {
+                <tr>
+                    <td>@task.Title</td>
+                    <td>@task.AssignedTo</td>
+                    <td>@task.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No completed tasks available.</p>
+}
+<div>
+    <NavLink href="/" class="nav-link"> Back To Main Page
+    </NavLink>
+</div>
+@code {
+    private List<TaskItem> tasks = new();
+    private List<TaskItem> completedTasks = new();
+
+    private int CompletedCount;
+    private int InProgressCount;
+    private int PendingCount;
+
+    protected override void OnInitialized()
+    {
+        RefreshData();
+        tasks = TaskService.GetTasks();
+        UpdateTaskLists();
+        _ = PeriodicUpdate();
+    }
+
+    private async Task PeriodicUpdate()
+    {
+        while (true)
+        {
+            await Task.Delay(5000); // every 5 seconds
+            TaskService.UpdateRandomTaskStatus();
+            tasks = TaskService.GetTasks();
+            UpdateTaskLists();
+            RefreshData();
+            StateHasChanged();
+        }
+    }
+    private void UpdateTaskLists()
+    {
+        completedTasks = tasks.Where(t => t.Status == Models.TaskStatus.Completed).ToList();
+    }
+
+    private void RefreshData()  
+    {  
+           tasks = TaskService.GetTasks();  
+           CompletedCount = tasks.Count(t => t.Status == Models.TaskStatus.Completed);  
+           InProgressCount = tasks.Count(t => t.Status == Models.TaskStatus.InProgress);
+           PendingCount = tasks.Count(t => t.Status == Models.TaskStatus.Pending);
+    }
+    private void GoToAddTask()
+    {
+        NavigationManager.NavigateTo("/index");
+    }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+}
